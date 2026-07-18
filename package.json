@@ -1,0 +1,31 @@
+{
+  "name": "jiggle-duck",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "patch:glb": "node scripts/patch-glb.mjs && npm run compress:glb",
+    "compress:glb": "node scripts/compress-glb.mjs",
+    "inspect:glb": "gltf-transform inspect public/duck.dev.glb",
+    "lint": "eslint src scripts",
+    "format": "prettier --write \"src/**/*.js\" \"scripts/*.mjs\" index.html",
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/*.mjs\" index.html"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.21",
+    "lil-gui": "^0.20.0",
+    "three": "^0.180.0",
+    "wiggle": "0.0.17"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@gltf-transform/cli": "^4.1.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5",
+    "vite": "^6.0.0"
+  }
+}
