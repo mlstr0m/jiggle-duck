@@ -23,6 +23,9 @@ export class Sparkles {
     this._back = restForward.clone().normalize().multiplyScalar(-1);
 
     this.positions = new Float32Array(COUNT * 3);
+    // fondu de bord par particule : sans lui, une paillette qui atteint le
+    // plan de recyclage (en plein champ) s'eteint d'un coup — constate
+    this.fades = new Float32Array(COUNT);
     const seeds = new Float32Array(COUNT);
     const sizes = new Float32Array(COUNT);
     this.offsets = [];
@@ -42,6 +45,7 @@ export class Sparkles {
     this.geometry.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
     this.geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
     this.geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+    this.geometry.setAttribute("aFade", new THREE.BufferAttribute(this.fades, 1));
 
     this.material = new THREE.ShaderMaterial({
       uniforms: {
@@ -53,10 +57,13 @@ export class Sparkles {
       vertexShader: /* glsl */ `
         attribute float aSeed;
         attribute float aSize;
+        attribute float aFade;
         uniform float uTime;
         uniform float uSize;
         varying float vTwinkle;
+        varying float vFade;
         void main() {
+          vFade = aFade;
           // scintillement individuel : des eclats brefs, pas une pulsation
           float t = 0.5 + 0.5 * sin(uTime * (0.8 + fract(aSeed) * 2.2) + aSeed * 7.0);
           vTwinkle = pow(t, 4.0);
@@ -70,6 +77,7 @@ export class Sparkles {
         uniform float uIntensity;
         uniform vec3 uColor;
         varying float vTwinkle;
+        varying float vFade;
         void main() {
           vec2 p = gl_PointCoord - 0.5;
           float d = length(p) * 2.0;
@@ -77,7 +85,7 @@ export class Sparkles {
           float core = pow(max(0.0, 1.0 - d), 4.0);
           float cross = max(0.0, 1.0 - abs(p.x * p.y) * 90.0) * max(0.0, 1.0 - d);
           float glow = (core + cross * 0.55) * (0.15 + 0.85 * vTwinkle);
-          gl_FragColor = vec4(uColor * glow * uIntensity, 1.0);
+          gl_FragColor = vec4(uColor * glow * uIntensity * vFade, 1.0);
         }
       `,
       transparent: true,
@@ -108,11 +116,19 @@ export class Sparkles {
       o.y += bob;
 
       // recyclage dans le volume (relatif camera)
-      if (o.dot(fwd) > BOX.z * 0.5) {
+      let along = o.dot(fwd);
+      if (along > BOX.z * 0.5) {
         o.copy(fwd).multiplyScalar(-BOX.z * 0.5);
         o.x += (Math.random() - 0.5) * BOX.x;
         o.y += (Math.random() - 0.5) * BOX.y;
+        along = o.dot(fwd);
       }
+      // fondu de bord : la paillette s'eteint sur 2 unites avant le plan de
+      // recyclage et se rallume apres le respawn — jamais de pop en plein champ
+      const edge = BOX.z * 0.5;
+      this.fades[i] =
+        Math.min(1, Math.max(0, (edge - along) / 2.0)) *
+        Math.min(1, Math.max(0, (along + edge) / 1.2));
 
       const k = i * 3;
       this.positions[k] = camera.position.x + o.x;
@@ -120,5 +136,6 @@ export class Sparkles {
       this.positions[k + 2] = camera.position.z + o.z;
     }
     this.geometry.attributes.position.needsUpdate = true;
+    this.geometry.attributes.aFade.needsUpdate = true;
   }
 }

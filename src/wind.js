@@ -8,8 +8,11 @@ import * as THREE from "three";
  * Cout : un draw call, ~200 sommets, mise a jour CPU negligeable.
  */
 
-const COUNT = 90;
-const BOX = new THREE.Vector3(9, 5, 9); // volume de recyclage autour de la camera
+const COUNT = 110;
+// Volume de recyclage autour de la camera. Profondeur 13 : le plan de
+// recyclage tombe a ~6.5 unites devant la camera, DERRIERE le canard (~5) —
+// la disparition se joue au-dela de la zone d'attention, pas dessus.
+const BOX = new THREE.Vector3(9, 5, 13);
 
 export class WindStreaks {
   /**
@@ -102,7 +105,8 @@ export class WindStreaks {
       // s'eteint sur ~1.5 unite avant la frontiere et se rallume apres le
       // respawn : le trait nait et meurt invisible.
       const edge = BOX.z * 0.5;
-      const fadeOut = Math.min(1, Math.max(0, (along + edge) / 1.5));
+      // fondu LONG (2.5 unites) : meme a pleine vitesse la sortie reste douce
+      const fadeOut = Math.min(1, Math.max(0, (along + edge) / 2.5));
       const fadeIn = Math.min(1, Math.max(0, (edge + 2.2 - along) / 1.5));
       const env = fadeOut * fadeIn;
       const a = this._baseAlpha[i] * env;
