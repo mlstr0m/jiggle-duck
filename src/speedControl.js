@@ -71,7 +71,9 @@ export function createSpeedControl({
   const throttleRatio = (lm) => {
     const aspect = getAspect();
     const dist = (a, b) => Math.hypot((a.x - b.x) * aspect, a.y - b.y);
-    const ref = dist(lm[0], lm[5]);
+    // meme reference robuste a l'inclinaison que le pinch (cf. pinch.js) :
+    // paume OU empan des articulations, le plus grand des deux
+    const ref = Math.max(dist(lm[0], lm[5]), dist(lm[5], lm[17]) / 0.62);
     if (ref < 1e-4) return 1;
     return dist(lm[4], lm[8]) / ref;
   };

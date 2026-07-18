@@ -592,6 +592,12 @@ async function boot() {
       __quality: quality,
       __grade: post.grade,
       __startExperience: startExperience,
+      // injection de mains synthetiques : teste le VRAI pipeline d'entree
+      // (roles, pinch, raycast, grab) sans webcam — verification automatisee
+      __injectHands: (landmarks) => {
+        tracker.result = { landmarks };
+        trackingReady = true;
+      },
       __snapshot: snapshot,
       __tick: tick,
     });

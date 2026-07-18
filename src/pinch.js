@@ -71,12 +71,20 @@ export class PinchDetector {
     const wrist = landmarks[LM.WRIST];
     const indexMcp = landmarks[LM.INDEX_MCP];
     const middleMcp = landmarks[LM.MIDDLE_MCP];
+    const pinkyMcp = landmarks[LM.PINKY_MCP];
 
     // x et y sont normalises independamment sur des cotes inegaux : sans
     // correction d'aspect, les distances sont fausses sur l'axe horizontal.
     const dist = (a, b) => Math.hypot((a.x - b.x) * this.aspect, a.y - b.y);
 
-    const refLength = dist(wrist, indexMcp);
+    // Reference robuste a l'INCLINAISON : la camera d'un portable regarde la
+    // main par en dessous — le segment poignet->index, quasi vertical,
+    // s'ecrase en perspective et le ratio explosait (pinch impossible a
+    // declencher sur MacBook, constate et reproduit). L'empan des
+    // articulations index->auriculaire, horizontal, ne s'ecrase pas : on
+    // prend le max des deux, ramenes a la meme echelle (l'empan vaut
+    // ~0.62x la longueur de paume).
+    const refLength = Math.max(dist(wrist, indexMcp), dist(indexMcp, pinkyMcp) / 0.62);
     // Main de profil ou tres loin : la reference s'effondre, le ratio explose.
     if (refLength < 1e-4) return this.isPinching;
 
