@@ -46,8 +46,10 @@ export const SETTINGS = {
   bloom: { intensite: 0.24, rayon: 0.14, seuil: 0.64 },
   vent: { intensite: 1.0, vitesse: 3.4, longueur: 0.65 },
   paillettes: { intensite: 1.15, taille: 1.85, derive: 3.0, teinte: "#ffc400" },
+  // flare DESACTIVE (19/07, Aurelien : "je l'aime pas finalement") — le
+  // module et le dossier Flare du panneau restent la pour le reactiver
   flare: {
-    actif: true,
+    actif: false,
     intensite: 2.0,
     halo: 330,
     chaleur: 0.5,
