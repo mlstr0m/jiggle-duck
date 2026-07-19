@@ -62,6 +62,8 @@ export class GrabController {
     this._tiltEuler = new THREE.Euler();
     this._baseQuat = new THREE.Quaternion();
     this._tiltQuat = new THREE.Quaternion();
+    this._sc = new THREE.Vector3(); // centre sphere (monde), prise assistee
+    this._sn = new THREE.Vector3(); // centre sphere (NDC), prise assistee
 
     this.desiredInit = false;
   }
@@ -83,9 +85,28 @@ export class GrabController {
     this.raycaster.setFromCamera(this._ndc, this.camera);
 
     const hits = this.raycaster.intersectObject(this.mesh, true);
-    if (hits.length === 0) return false;
-
-    this.hitPoint.copy(hits[0].point);
+    if (hits.length > 0) {
+      this.hitPoint.copy(hits[0].point);
+    } else {
+      // PRISE ASSISTEE : le tir precis a rate, mais si le pincement tombe
+      // dans la sphere ECRAN du canard (+30% de marge), on prend quand meme.
+      // Sans ça, sur une petite fenetre le canard fait ~40 px alors que le
+      // jitter de la main reste constant — prise quasi impossible hors
+      // fullscreen (constate). La tolerance est en espace ecran : elle
+      // s'adapte d'elle-meme a la taille de fenetre et au zoom camera.
+      const sphere = this.mesh.boundingSphere; // local, frais (recalcule ci-dessus)
+      this._sc.copy(sphere.center).applyMatrix4(this.mesh.matrixWorld);
+      const dist = this._sc.distanceTo(this.camera.position);
+      const halfTan = Math.tan((this.camera.fov * Math.PI) / 360);
+      const ry = sphere.radius / (dist * halfTan); // rayon ecran (demi-hauteur NDC)
+      const rx = ry / this.camera.aspect;
+      this._sn.copy(this._sc).project(this.camera);
+      const ex = (ndcX - this._sn.x) / (rx * 1.3);
+      const ey = (ndcY - this._sn.y) / (ry * 1.3);
+      if (ex * ex + ey * ey > 1 || this._sn.z > 1) return false;
+      // point de prise : le centre du canard, a sa profondeur
+      this.hitPoint.copy(this._sc);
+    }
 
     // Plan face camera passant par le point touche.
     this.camera.getWorldDirection(this._normal);

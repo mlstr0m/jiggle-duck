@@ -110,6 +110,8 @@ export function createPostChain({ renderer, scene, camera, container }) {
   // est enregistre AVANT celui-ci — le composer et le RT lisent donc la
   // taille deja mise a jour.
   window.addEventListener("resize", () => {
+    // meme garde-fou que scene.js : taille nulle transitoire -> on ignore
+    if (container.clientWidth < 2 || container.clientHeight < 2) return;
     composer.setSize(container.clientWidth, container.clientHeight);
     rebuildSkyRT();
     updateScreenUniforms();

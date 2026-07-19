@@ -72,6 +72,10 @@ export function createScene(container) {
   const onResize = () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
+    // transition fullscreen/fenetre : un evenement peut arriver avec une
+    // taille nulle — aspect NaN, projection corrompue, raycast mort
+    // (constate). On ignore, le prochain resize valide remettra tout.
+    if (w < 2 || h < 2) return;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
