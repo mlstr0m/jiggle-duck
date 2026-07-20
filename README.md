@@ -1,4 +1,6 @@
-# Jiggle Duck
+# Ducks — An interactive migration
+
+(nom de code du projet : `jiggle-duck`)
 
 Short experience with MediaPipe. Tout tourne en local dans l'onglet : aucune
 image ne sort du navigateur.
