@@ -28,6 +28,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Les videos de presentation (assets de la release "media") sont
+      # embarquees dans le site Pages : servies en video/mp4 SANS redirection
+      # — necessaires pour les embeds (Muzli refuse le 302 des releases) —
+      # et sans jamais alourdir le repo git.
+      - name: media
+        run: |
+          mkdir -p dist/media
+          curl -sL -o dist/media/169_jiggleducks.mp4 \
+            "https://github.com/${{ github.repository }}/releases/download/media/169_jiggleducks.mp4"
+          curl -sL -o dist/media/916_jiggleducks.mp4 \
+            "https://github.com/${{ github.repository }}/releases/download/media/916_jiggleducks.mp4"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
